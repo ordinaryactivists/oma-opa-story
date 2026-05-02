@@ -451,25 +451,77 @@ body.viewer-mode .la-empty-hint{display:none}
     document.getElementById('sync-label').textContent=text;
   }
 
+  // Robustes Base64-Dekodieren mit voller UTF-8-Unterstützung (Umlaute, Sonderzeichen)
+  function decodeBase64UTF8(base64){
+    // Methode 1: TextDecoder (modern, alle Browser seit 2017)
+    try{
+      var binary=atob(base64.replace(/\n/g,''));
+      var bytes=new Uint8Array(binary.length);
+      for(var i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+      return new TextDecoder('utf-8').decode(bytes);
+    }catch(e1){
+      // Methode 2: Fallback über encodeURIComponent
+      try{
+        return decodeURIComponent(escape(atob(base64.replace(/\n/g,''))));
+      }catch(e2){
+        throw new Error('Base64-Dekodierung fehlgeschlagen: '+e2.message);
+      }
+    }
+  }
+
   async function loadFromGitHub(){
     var url=ghUrl();
     if(!url){ setSyncStatus('warn','Nicht konfiguriert'); return false; }
     setSyncStatus('busy','Lade von GitHub...');
     try{
       var r=await fetch(url,{headers:ghHeaders()});
-      if(!r.ok){ setSyncStatus('err','Fehler '+r.status); return false; }
+      if(!r.ok){
+        var errData=await r.json().catch(function(){ return {}; });
+        setSyncStatus('err','Fehler '+r.status+(errData.message?' — '+errData.message:''));
+        toast('GitHub-Fehler '+r.status+': '+(errData.message||'Bitte Einstellungen prüfen'));
+        render(); // Zeige vorhandene lokale Daten
+        return false;
+      }
       var data=await r.json();
       ghFileSha=data.sha;
-      var raw=decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+
+      // Leere Datei abfangen
+      var rawContent=(data.content||'').replace(/\n/g,'').trim();
+      if(!rawContent){
+        setSyncStatus('warn','Datei ist leer — starte mit leerem Datensatz');
+        toast('datenbank.json ist leer — du kannst jetzt Blöcke hinzufügen');
+        render();
+        return true;
+      }
+
+      var raw=decodeBase64UTF8(rawContent);
+
+      // Leerer String nach Dekodierung
+      if(!raw.trim()){
+        setSyncStatus('warn','Datei ist leer');
+        render();
+        return true;
+      }
+
       var parsed=JSON.parse(raw);
       if(Array.isArray(parsed)){
         sdb(parsed); render();
         setSyncStatus('ok','Synchronisiert · '+fd(nowISO()));
         toast('Daten von GitHub geladen ('+parsed.length+' Blöcke)');
         return true;
+      }else{
+        setSyncStatus('warn','JSON-Format ungültig — kein Array');
+        toast('Warnung: datenbank.json enthält kein gültiges Array');
+        render();
+        return false;
       }
-    }catch(e){ setSyncStatus('err','Fehler: '+e.message); }
-    return false;
+    }catch(e){
+      setSyncStatus('err','Ladefehler: '+e.message);
+      toast('Fehler beim Laden: '+e.message);
+      console.error('loadFromGitHub Fehler:', e);
+      render(); // Zeige vorhandene lokale Daten statt einzufrieren
+      return false;
+    }
   }
 
   async function saveToGitHub(db, msg){
@@ -478,7 +530,7 @@ body.viewer-mode .la-empty-hint{display:none}
     if(!cfg.token){ setSyncStatus('warn','Kein Token'); return false; }
     setSyncStatus('busy','Speichere...');
     try{
-      var content=btoa(unescape(encodeURIComponent(JSON.stringify(db,null,2))));
+      var jsonStr=JSON.stringify(db,null,2); var bytes=new TextEncoder().encode(jsonStr); var binary=""; bytes.forEach(function(b){ binary+=String.fromCharCode(b); }); var content=btoa(binary);
       var body={message:msg||'Update '+new Date().toLocaleString('de-DE'), content:content, branch:'main'};
       if(ghFileSha) body.sha=ghFileSha;
       var r=await fetch(url,{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
