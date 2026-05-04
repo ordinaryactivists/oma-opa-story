@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Oma &amp; Opa &#8211; Eure Story</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   Oma & Opa – Eure Story
+   style.css — alle Gestaltungsregeln
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── FARBEN & VARIABLEN ──────────────────────────────────── */
+:root {
+  /* Hintergrundfarben */
+  --cream:    #fdf8f2;   /* Seitenhintergrund */
+  --warm:     #fffcf7;   /* Karten / Sidebar */
+  --sand:     #e8ddd0;   /* Trennlinien / Ränder */
+
+  /* Akzentfarben */
+  --rose:     #c9a99a;   /* Primärfarbe (Buttons, Badges) */
+  --rose-lt:  #f0e0d8;   /* Heller Rose-Ton (Hover, Hintergründe) */
+  --sage:     #8a9e8c;   /* Sekundär (Antwort-Badge, Salbei) */
+  --sage-lt:  #d4e0d5;
+  --amber:    #c8885a;   /* Sonstiges-Abschnitt */
+  --amber-lt: #f5e6d8;
+  --brown:    #6b4c3b;   /* Überschriften, dunkle Texte */
+
+  /* Textfarben */
+  --txt:      #3a2e28;   /* Haupttext */
+  --txt-mid:  #6b5c52;   /* Mittlerer Text */
+  --txt-hint: #9e8f87;   /* Hinweistext / Platzhalter */
+
+  /* Schatten */
+  --shadow:   0 4px 24px rgba(107,76,59,.10);
+  --shadow-h: 0 8px 36px rgba(107,76,59,.18);
+
+  /* Sonstiges */
+  --r:  14px;    /* Standard-Abrundung */
+  --sw: 260px;   /* Sidebar-Breite */
+}
+
+/* ── RESET & BASIS ───────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Lato', sans-serif;
+  background: var(--cream);
+  color: var(--txt);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+#sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sw);
+  height: 100vh;
+  background: var(--warm);
+  border-right: 1px solid var(--sand);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+  box-shadow: 2px 0 16px rgba(107,76,59,.07);
+}
+#sidebar.hidden { transform: translateX(calc(-1 * var(--sw))); }
+
+.sb-head {
+  padding: 28px 20px 16px;
+  border-bottom: 1px solid var(--sand);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sb-head span {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  color: var(--brown);
+  font-weight: 700;
+}
+
+.toggle-btn {
+  position: fixed;
+  top: 18px; left: 18px;
+  z-index: 300;
+  background: rgba(255,255,255,.85);
+  border: 1px solid rgba(255,255,255,.6);
+  border-radius: 50%;
+  width: 40px; height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+.toggle-btn:hover { background: #fff; }
+.toggle-btn svg { width: 20px; height: 20px; stroke: var(--brown); }
+
+.sb-nav { flex: 1; overflow-y: auto; padding: 16px 0; }
+.sb-nav ul { list-style: none; }
+.sb-nav li a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  color: var(--txt-mid);
+  text-decoration: none;
+  font-size: .88rem;
+  border-left: 3px solid transparent;
+  transition: all .2s;
+}
+.sb-nav li a:hover,
+.sb-nav li a.active {
+  color: var(--brown);
+  background: var(--rose-lt);
+  border-left-color: var(--rose);
+  font-weight: 700;
+}
+.nav-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--sand);
+  font-size: .75rem;
+  text-align: center;
+  line-height: 22px;
+  color: var(--brown);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sb-foot {
+  padding: 16px 20px;
+  border-top: 1px solid var(--sand);
+  font-size: .78rem;
+  color: var(--txt-hint);
+  text-align: center;
+}
+.sb-foot strong { display: block; color: var(--brown); font-size: .85rem; margin-bottom: 4px; }
+
+/* Sync-Status in der Sidebar */
+.sb-sync {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 4px;
+  font-size: .72rem;
+  color: var(--txt-hint);
+}
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--txt-hint);
+  flex-shrink: 0;
+  transition: background .3s;
+}
+.sync-dot.ok   { background: var(--sage); }
+.sync-dot.err  { background: #e57373; }
+.sync-dot.busy { background: var(--amber); animation: pulse .8s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .3; }
+}
+
+/* ── HAUPTBEREICH ────────────────────────────────────────── */
+#main {
+  margin-left: var(--sw);
+  transition: margin-left .35s cubic-bezier(.4,0,.2,1);
+  min-height: 100vh;
+}
+#main.expanded { margin-left: 0; }
+
+/* ── OBEN RECHTS (Rolle + Einstellungen) ─────────────────── */
+.top-right {
+  position: fixed;
+  top: 14px; right: 16px;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.role-pill {
+  background: rgba(255,255,255,.85);
+  border: 1px solid rgba(255,255,255,.6);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: .78rem;
+  color: var(--txt-mid);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow);
+}
+.role-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); }
+.role-dot.viewer { background: var(--rose); }
+
+.icon-btn {
+  background: rgba(255,255,255,.85);
+  border: 1px solid rgba(255,255,255,.6);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: .78rem;
+  cursor: pointer;
+  color: var(--brown);
+  box-shadow: var(--shadow);
+  transition: background .2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Lato', sans-serif;
+}
+.icon-btn:hover { background: #fff; }
+.icon-btn svg { width: 14px; height: 14px; stroke: var(--brown); flex-shrink: 0; }
+
+/* ── HERO / BANNER ───────────────────────────────────────── */
+.hero {
+  background: linear-gradient(160deg, #f0e0d8 0%, #f5e6d8 60%, #d4e0d5 100%);
+  padding: 80px 48px 56px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23c9a99a' fill-opacity='0.09'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: .5;
+}
+.hero-avatar-wrap { position: relative; z-index: 1; margin: 0 auto 28px; width: 160px; height: 160px; }
+.hero-avatar-img {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid rgba(255,255,255,.9);
+  box-shadow: 0 8px 32px rgba(107,76,59,.2);
+  display: block;
+}
+.hero-avatar-ph {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  border: 3px dashed var(--rose);
+  background: rgba(255,255,255,.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  gap: 6px;
+  transition: background .2s;
+}
+.hero-avatar-ph:hover { background: rgba(255,255,255,.82); }
+.hero-avatar-ph svg  { width: 36px; height: 36px; stroke: var(--rose); }
+.hero-avatar-ph span { font-size: .78rem; color: var(--rose); }
+
+.change-btn {
+  position: absolute;
+  bottom: 4px; right: 4px;
+  background: rgba(255,255,255,.85);
+  border: 1px solid var(--sand);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: .72rem;
+  cursor: pointer;
+  color: var(--txt-mid);
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  color: var(--brown);
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 2px 8px rgba(255,255,255,.5);
+}
+.hero-sub {
+  font-size: 1rem;
+  color: var(--txt-mid);
+  font-weight: 300;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+}
+#banner-inp { display: none; }
+
+/* ── TOOLBAR (sticky oben) ───────────────────────────────── */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(253,248,242,.95);
+  border-bottom: 1px solid var(--sand);
+  padding: .6rem 1.5rem;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.toolbar-title {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--txt-mid);
+  flex: 1;
+  font-family: 'Playfair Display', serif;
+}
+.tb-btn {
+  background: var(--warm);
+  border: 1px solid var(--sand);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: .78rem;
+  cursor: pointer;
+  color: var(--txt-mid);
+  transition: border-color .15s, color .15s;
+  white-space: nowrap;
+  font-family: 'Lato', sans-serif;
+}
+.tb-btn:hover { border-color: var(--rose); color: var(--rose); }
+
+/* ── ZITAT ───────────────────────────────────────────────── */
+.quote-section { max-width: 720px; margin: 0 auto; padding: 52px 32px 40px; text-align: center; }
+.quote-block {
+  background: var(--warm);
+  border-left: 4px solid var(--rose);
+  border-radius: var(--r);
+  padding: 28px 36px;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.quote-block::before {
+  content: '"';
+  font-family: 'Playfair Display', serif;
+  font-size: 5rem;
+  color: var(--rose-lt);
+  position: absolute;
+  top: -18px; left: 18px;
+  line-height: 1;
+}
+.quote-text  { font-family: 'Playfair Display', serif; font-size: 1.18rem; color: var(--txt-mid); font-style: italic; line-height: 1.7; }
+.quote-meta  { margin-top: 14px; font-size: .82rem; color: var(--txt-hint); }
+.quote-empty { color: var(--txt-hint); font-style: italic; font-size: .95rem; }
+
+/* ── IMPORT/EXPORT PANEL ─────────────────────────────────── */
+.io-panel { max-width: 860px; margin: 0 auto; padding: 0 32px; display: none; }
+.io-panel.open { display: block; }
+.io-inner { background: var(--warm); border: 1px solid var(--sand); border-radius: var(--r); padding: 16px 20px; margin-bottom: 24px; }
+.io-inner h4 { font-size: .85rem; font-weight: 700; color: var(--brown); margin-bottom: 10px; }
+.io-row  { display: flex; gap: 8px; flex-wrap: wrap; }
+.io-btn  { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--sand); background: var(--cream); font-size: .8rem; cursor: pointer; color: var(--txt-mid); font-family: 'Lato', sans-serif; }
+.io-btn:hover { border-color: var(--rose); color: var(--rose); }
+.io-hint { font-size: .75rem; color: var(--txt-hint); margin-top: 8px; }
+
+/* ── STATISTIKLEISTE ─────────────────────────────────────── */
+.stats-bar { max-width: 860px; margin: 0 auto; padding: 0 32px 24px; display: flex; gap: 1.5rem; }
+.stat-card { background: var(--warm); border: 1px solid var(--sand); border-radius: var(--r); padding: .75rem 1.25rem; text-align: center; flex: 1; }
+.stat-n { font-size: 1.4rem; font-weight: 700; color: var(--rose); }
+.stat-l { font-size: .75rem; color: var(--txt-hint); }
+
+/* ── LEBENSABSCHNITTE ────────────────────────────────────── */
+.sections-container { max-width: 860px; margin: 0 auto; padding: 0 32px 120px; }
+.la-section { margin-bottom: 56px; scroll-margin-top: 80px; }
+.la-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 0 16px;
+  border-bottom: 2px solid var(--sand);
+  margin-bottom: 24px;
+}
+.la-number {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--rose);
+  color: #fff;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(201,169,154,.4);
+}
+.la-number.misc { background: var(--amber); }
+.la-title    { font-family: 'Playfair Display', serif; font-size: 1.45rem; color: var(--brown); font-weight: 700; }
+.la-subtitle { font-size: .82rem; color: var(--txt-hint); margin-top: 2px; }
+.la-count    { margin-left: auto; font-size: .78rem; color: var(--txt-hint); background: var(--warm); border: 1px solid var(--sand); border-radius: 20px; padding: 2px 10px; }
+.la-empty-hint { text-align: center; padding: 36px; color: var(--txt-hint); font-style: italic; font-size: .92rem; background: rgba(255,255,255,.5); border-radius: var(--r); border: 2px dashed var(--sand); }
+
+/* ── BLÖCKE ──────────────────────────────────────────────── */
+.blocks-list { display: flex; flex-direction: column; gap: 16px; min-height: 48px; }
+.blocks-list.drag-over { background: var(--rose-lt); border-radius: var(--r); padding: 8px; }
+
+.block {
+  background: var(--warm);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--sand);
+  overflow: hidden;
+  transition: box-shadow .2s, border-color .2s;
+  position: relative;
+}
+.block:hover     { box-shadow: var(--shadow-h); border-color: var(--rose-lt); }
+.block.dragging  { opacity: .5; }
+.block.drag-over { border-color: var(--rose); background: var(--rose-lt); }
+
+.block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid var(--sand);
+}
+.block-tag { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 3px 10px; border-radius: 20px; background: var(--rose-lt); color: var(--rose); }
+.block-tag.misc { background: var(--amber-lt); color: var(--amber); }
+
+.block-actions { display: flex; gap: 6px; align-items: center; }
+.block-btn {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+}
+.block-btn:hover { background: var(--sand); }
+.block-btn svg   { width: 16px; height: 16px; }
+.del-btn svg { stroke: #e57373; }
+.img-btn svg { stroke: var(--sage); }
+.edt-btn svg { stroke: var(--txt-mid); }
+.drg-btn svg { stroke: var(--txt-hint); }
+
+.block-body { padding: 16px 18px 18px; }
+.block-question {
+  font-weight: 700;
+  color: var(--brown);
+  font-size: .98rem;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.block-question::before {
+  content: 'F';
+  min-width: 22px; height: 22px;
+  background: var(--rose);
+  color: #fff;
+  border-radius: 50%;
+  font-size: .72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.block-answer {
+  color: var(--txt-mid);
+  font-size: .93rem;
+  line-height: 1.7;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  white-space: pre-wrap;
+}
+.block-answer::before {
+  content: 'A';
+  min-width: 22px; height: 22px;
+  background: var(--sage);
+  color: #fff;
+  border-radius: 50%;
+  font-size: .72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.block-text { color: var(--txt-mid); font-size: .93rem; line-height: 1.7; white-space: pre-wrap; }
+
+.block-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 10px;
+  border-top: 1px solid var(--sand);
+  flex-wrap: wrap;
+}
+.block-id     { background: var(--cream); border: 1px solid var(--sand); border-radius: 4px; padding: 1px 7px; font-size: .75rem; font-family: monospace; color: var(--txt-hint); }
+.block-date   { font-size: .75rem; color: var(--txt-hint); flex: 1; }
+.block-la-tag { background: #eef4fb; color: #1565c0; border-radius: 4px; padding: 1px 7px; font-size: .75rem; }
+
+.block-media { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--sand); }
+.media-thumb { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 2px solid var(--sand); cursor: pointer; }
+.media-thumb:hover { border-color: var(--rose); }
+
+/* ── FAB (+ Button unten rechts) ─────────────────────────── */
+#fab { position: fixed; bottom: 36px; right: 36px; z-index: 500; }
+.fab-main {
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: var(--rose);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 24px rgba(201,169,154,.5);
+  transition: transform .2s;
+}
+.fab-main:hover { transform: scale(1.08); }
+.fab-main svg { width: 26px; height: 26px; stroke: #fff; }
+
+/* ── MODALS ──────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(58,46,40,.45);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--warm);
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(58,46,40,.25);
+  padding: 32px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal h2     { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--brown); margin-bottom: 4px; }
+.modal-sub    { font-size: .85rem; color: var(--txt-hint); margin-bottom: 20px; }
+.form-label   { display: block; font-size: .78rem; font-weight: 700; color: var(--txt-mid); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; margin-top: 14px; }
+
+.modal input,
+.modal textarea,
+.modal select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--sand);
+  border-radius: 10px;
+  font-family: 'Lato', sans-serif;
+  font-size: .93rem;
+  background: var(--cream);
+  color: var(--txt);
+  outline: none;
+  transition: border-color .2s;
+  resize: vertical;
+}
+.modal input:focus,
+.modal textarea:focus,
+.modal select:focus { border-color: var(--rose); }
+.modal textarea { min-height: 100px; }
+
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+
+.btn { padding: 10px 22px; border-radius: 10px; border: none; cursor: pointer; font-family: 'Lato', sans-serif; font-size: .9rem; font-weight: 700; transition: transform .12s; }
+.btn:hover        { transform: translateY(-1px); }
+.btn-primary      { background: var(--rose); color: #fff; }
+.btn-primary:hover{ background: #b8948a; }
+.btn-secondary    { background: var(--sand); color: var(--brown); }
+.btn-danger       { background: #fdecea; color: #c62828; }
+
+.confirm-msg     { font-size: .95rem; color: var(--txt-mid); line-height: 1.6; margin-top: 8px; }
+.confirm-preview { background: var(--cream); border-left: 3px solid var(--rose-lt); border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: .88rem; color: var(--txt-mid); margin-top: 12px; }
+
+/* GitHub Einstellungen Status-Zeilen */
+.srow { display: flex; align-items: flex-start; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: .82rem; margin-top: 6px; background: var(--cream); }
+.srow.ok   { border-left: 3px solid var(--sage); }
+.srow.err  { border-left: 3px solid #e57373; }
+.srow.warn { border-left: 3px solid var(--amber); }
+.token-note { font-size: .75rem; color: var(--txt-hint); margin-top: 6px; line-height: 1.5; }
+
+/* ── TOAST (kurze Statusmeldungen) ───────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 110px; right: 36px;
+  z-index: 9999;
+  background: var(--brown);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: .88rem;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .25s, transform .25s;
+  pointer-events: none;
+  max-width: 320px;
+}
+#toast.show { opacity: 1; transform: none; }
+
+/* ── BETRACHTER-MODUS ────────────────────────────────────── */
+/* Alle Editor-Elemente ausblenden wenn Rolle = Betrachter */
+body.viewer-mode .editor-only { display: none !important; }
+body.viewer-mode .la-empty-hint { display: none; }
+
+/* Viewer-Banner (nur im ?mode=view sichtbar) */
+.viewer-banner {
+  display: none;
+  background: linear-gradient(90deg, var(--rose-lt), var(--amber-lt));
+  border-bottom: 1px solid var(--sand);
+  padding: 10px 24px;
+  font-size: .82rem;
+  color: var(--txt-mid);
+  text-align: center;
+}
+body.viewer-mode .viewer-banner { display: block; }
+
+/* ── RESPONSIVE (Mobilgeräte) ────────────────────────────── */
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(calc(-1 * var(--sw))); }
+  #sidebar:not(.hidden) { transform: none; }
+  #main { margin-left: 0 !important; }
+  .hero { padding: 70px 24px 48px; }
+  .sections-container,
+  .stats-bar,
+  .io-panel { padding-left: 16px; padding-right: 16px; }
+  #fab { bottom: 24px; right: 20px; }
+  .icon-btn span { display: none; }
+}
+
+</style>
+</head>
+<body class="editor-mode">
+
+<!-- ═══════════════════════════════════════════════════════
+     SIDEBAR-TOGGLE (Hamburger-Button oben links)
+     ═══════════════════════════════════════════════════════ -->
+<button class="toggle-btn" id="sidebar-toggle" title="Inhaltsverzeichnis ein-/ausblenden">
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="3" y1="6" x2="21" y2="6"/>
+    <line x1="3" y1="12" x2="21" y2="12"/>
+    <line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+</button>
+
+<!-- ═══════════════════════════════════════════════════════
+     ROLLEN-BADGE & EINSTELLUNGEN (oben rechts)
+     ═══════════════════════════════════════════════════════ -->
+<div class="top-right">
+  <div class="role-pill">
+    <span class="role-dot" id="role-dot"></span>
+    <span id="role-label">Mitarbeiter</span>
+  </div>
+  <button class="icon-btn" id="role-toggle-btn">Wechseln</button>
+  <button class="icon-btn editor-only" id="settings-btn" title="GitHub-Einstellungen">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <span>Einstellungen</span>
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SIDEBAR — Inhaltsverzeichnis
+     ═══════════════════════════════════════════════════════ -->
+<nav id="sidebar">
+  <div class="sb-head">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0">
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+    </svg>
+    <span>Inhaltsverzeichnis</span>
+  </div>
+  <div class="sb-nav">
+    <ul>
+      <li><a href="#sec-quote" class="nav-link"><span class="nav-num">&#8212;</span>Zitat</a></li>
+      <li><a href="#sec-1"     class="nav-link"><span class="nav-num">1</span>Die Wurzeln</a></li>
+      <li><a href="#sec-2"     class="nav-link"><span class="nav-num">2</span>Die Kindheit</a></li>
+      <li><a href="#sec-3"     class="nav-link"><span class="nav-num">3</span>Schulzeit &amp; Jugend</a></li>
+      <li><a href="#sec-4"     class="nav-link"><span class="nav-num">4</span>Auf eigenen Beinen</a></li>
+      <li><a href="#sec-5"     class="nav-link"><span class="nav-num">5</span>Eltern &amp; Gro&#223;eltern</a></li>
+      <li><a href="#sec-6"     class="nav-link"><span class="nav-num">6</span>Lebensbilanz</a></li>
+      <li><a href="#sec-misc"  class="nav-link"><span class="nav-num">&#10022;</span>Sonstiges</a></li>
+    </ul>
+  </div>
+  <div class="sb-foot">
+    <strong>Oma &amp; Opa &#8211; Eure Story</strong>
+    <div class="sb-sync">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sync-label">Nicht verbunden</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     HAUPTBEREICH
+     ═══════════════════════════════════════════════════════ -->
+<main id="main">
+
+  <!-- VIEWER-MODUS BANNER — nur sichtbar bei ?mode=view -->
+  <div class="viewer-banner">
+    &#128218; Oma &amp; Opa &#8211; Eure Story &nbsp;&#183;&nbsp; Betrachter-Ansicht
+  </div>
+
+  <!-- HERO / BANNERFOTO -->
+  <div class="hero">
+    <div class="hero-avatar-wrap">
+      <div class="hero-avatar-ph" id="avatar-ph">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <span>Foto hochladen</span>
+      </div>
+      <img id="banner-img" class="hero-avatar-img" style="display:none" src="" alt="Oma und Opa"/>
+      <button class="change-btn" id="change-btn" style="display:none">&#9998; &#228;ndern</button>
+    </div>
+    <input type="file" id="banner-inp" accept="image/*"/>
+    <h1>Oma &amp; Opa &#8211; Eure Story</h1>
+    <div class="hero-sub">Eine Reise durch ein Leben voller Liebe &amp; Erinnerungen</div>
+  </div>
+
+  <!-- STICKY TOOLBAR -->
+  <div class="toolbar">
+    <span class="toolbar-title">Oma &amp; Opa &#8211; Eure Story</span>
+    <button class="tb-btn editor-only" id="tb-io">&#128229; Import / Export</button>
+    <button class="tb-btn editor-only" id="tb-save">&#128190; JSON sichern</button>
+    <button class="tb-btn editor-only" id="tb-quote">&#9998; Zitat &#228;ndern</button>
+    <button class="tb-btn editor-only" id="tb-sync">&#8635; GitHub sync</button>
+  </div>
+
+  <!-- ZITAT -->
+  <section class="quote-section" id="sec-quote">
+    <div class="quote-block">
+      <div id="quote-content">
+        <p class="quote-empty">Noch kein Zitat hinterlegt.</p>
+      </div>
+      <div class="quote-meta" id="quote-meta"></div>
+    </div>
+  </section>
+
+  <!-- IMPORT / EXPORT PANEL -->
+  <div class="io-panel editor-only" id="io-panel">
+    <div class="io-inner">
+      <h4>Daten Import / Export</h4>
+      <div class="io-row">
+        <button class="io-btn" id="io-import-btn">&#128194; JSON importieren</button>
+        <button class="io-btn" id="io-export-btn">&#128228; JSON exportieren</button>
+        <button class="io-btn" id="io-csv-btn">&#128202; CSV exportieren</button>
+      </div>
+      <input type="file" id="import-inp" accept=".json" style="display:none"/>
+      <p class="io-hint">JSON importieren und automatisch mit GitHub synchronisieren.</p>
+    </div>
+  </div>
+
+  <!-- STATISTIKLEISTE (wird per JavaScript befüllt) -->
+  <div class="stats-bar" id="stats-bar"></div>
+
+  <!-- LEBENSABSCHNITTE (werden per JavaScript aufgebaut) -->
+  <div class="sections-container" id="sections-container"></div>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════
+     FAB — + Button unten rechts
+     ═══════════════════════════════════════════════════════ -->
+<div id="fab" class="editor-only">
+  <button class="fab-main" id="fab-btn" title="Block hinzuf&#252;gen">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5"  y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+</div>
+
+<!-- Toast-Meldungen (kurze Statushinweise) -->
+<div id="toast"></div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     MODALS
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Block hinzufügen / bearbeiten -->
+<div class="modal-overlay" id="block-modal">
+  <div class="modal">
+    <h2 id="bm-title">Block hinzuf&#252;gen</h2>
+    <p class="modal-sub">Frage &amp; Antwort oder freie Notiz erstellen</p>
+    <label class="form-label">Typ</label>
+    <select id="m-type">
+      <option value="qa">Frage &amp; Antwort</option>
+      <option value="misc">Freier Text / Erz&#228;hlung</option>
+    </select>
+    <div id="m-qa-f">
+      <label class="form-label">Frage</label>
+      <textarea id="m-frage" rows="2" placeholder="z.B. Wo bist du aufgewachsen?"></textarea>
+      <label class="form-label">Antwort</label>
+      <textarea id="m-antwort" rows="4" placeholder="Antwort..."></textarea>
+    </div>
+    <div id="m-txt-f" style="display:none">
+      <label class="form-label">Text / Erz&#228;hlung</label>
+      <textarea id="m-text" rows="5" placeholder="Freier Text..."></textarea>
+    </div>
+    <label class="form-label">Lebensabschnitt</label>
+    <select id="m-la"></select>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="bm-cancel">Abbrechen</button>
+      <button class="btn btn-primary"   id="bm-save">Block erstellen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Block löschen (Bestätigung) -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <h2>Block l&#246;schen?</h2>
+    <p class="confirm-msg">
+      Soll dieser Block in den Papierkorb verschoben werden?<br>
+      <small style="color:var(--txt-hint)">Er bleibt mit L&#246;schdatum in der JSON-Datei und in GitHub erhalten.</small>
+    </p>
+    <div class="confirm-preview" id="del-prev"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="del-cancel">Abbrechen</button>
+      <button class="btn btn-danger"    id="del-confirm">&#128465; In den Papierkorb</button>
+    </div>
+  </div>
+</div>
+
+<!-- Block bearbeiten -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h2>Block bearbeiten</h2>
+    <div id="e-qa-f">
+      <label class="form-label">Frage</label>
+      <textarea id="e-frage" rows="2"></textarea>
+      <label class="form-label">Antwort</label>
+      <textarea id="e-antwort" rows="4"></textarea>
+    </div>
+    <div id="e-txt-f" style="display:none">
+      <label class="form-label">Text</label>
+      <textarea id="e-text" rows="5"></textarea>
+    </div>
+    <label class="form-label">Lebensabschnitt</label>
+    <select id="e-la"></select>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="em-cancel">Abbrechen</button>
+      <button class="btn btn-primary"   id="em-save">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Medien hinzufügen -->
+<div class="modal-overlay" id="media-modal">
+  <div class="modal">
+    <h2>Medien hinzuf&#252;gen</h2>
+    <p class="modal-sub">Bild oder Video dem Block anh&#228;ngen</p>
+    <label class="form-label">Datei(en) w&#228;hlen</label>
+    <input type="file" id="media-inp" accept="image/*,video/*" multiple/>
+    <p style="font-size:.8rem;color:var(--txt-hint);margin-top:8px">
+      Dateien werden als Base64 in der JSON gespeichert.<br>
+      F&#252;r Videos empfehlen wir externe Links (z.B. Google Drive).
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="mm-cancel">Abbrechen</button>
+      <button class="btn btn-primary"   id="mm-save">Anh&#228;ngen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Zitat bearbeiten -->
+<div class="modal-overlay" id="quote-modal">
+  <div class="modal">
+    <h2>Zitat bearbeiten</h2>
+    <label class="form-label">Zitat</label>
+    <textarea id="q-text" rows="3"></textarea>
+    <label class="form-label">Quelle / Zuschreibung</label>
+    <input type="text" id="q-src" placeholder="z.B. Oma, Interview 2"/>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="qm-cancel">Abbrechen</button>
+      <button class="btn btn-primary"   id="qm-save">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- GitHub-Einstellungen -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h2>&#9881; GitHub-Einstellungen</h2>
+    <p class="modal-sub">Verbinde die Website mit deiner datenbank.json in GitHub</p>
+    <label class="form-label">GitHub-Benutzername</label>
+    <input type="text"     id="cfg-user"  placeholder="z.B. maxmustermann"/>
+    <label class="form-label">Repository-Name</label>
+    <input type="text"     id="cfg-repo"  placeholder="z.B. oma-opa-story"/>
+    <label class="form-label">Dateiname der Datenbank</label>
+    <input type="text"     id="cfg-file"  placeholder="datenbank.json"/>
+    <label class="form-label">
+      Personal Access Token
+      <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;font-size:.72rem;color:var(--txt-hint)">
+        (github.com &#8594; Settings &#8594; Developer settings &#8594; Tokens classic)
+      </span>
+    </label>
+    <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"/>
+    <p class="token-note">
+      &#128274; Das Token wird nur in deinem Browser gespeichert (localStorage) &#8212;
+      nicht auf GitHub oder einem Server.
+    </p>
+    <div id="settings-status"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="cfg-close">Schlie&#223;en</button>
+      <button class="btn btn-secondary" id="cfg-test">Verbindung testen</button>
+      <button class="btn btn-primary"   id="cfg-save">Speichern &amp; verbinden</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JavaScript — ganz am Ende laden, damit das HTML
+     bereits vollständig im Browser verfügbar ist
+     ═══════════════════════════════════════════════════════ -->
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Oma & Opa – Eure Story
+   app.js — gesamte Anwendungslogik
+   ═══════════════════════════════════════════════════════════ */
+
+(function () {
+  'use strict';
+
+  /* ── LEBENSABSCHNITTE ────────────────────────────────────
+     Hier kannst du Titel oder Untertitel anpassen            */
+  var LA = [
+    {id:'1',   num:'1', title:'Die Wurzeln',               sub:'Herkunft & Familie'},
+    {id:'2',   num:'2', title:'Die Kindheit',               sub:'Eure ersten Jahre (0-10 Jahre)'},
+    {id:'3',   num:'3', title:'Schulzeit & Jugend',         sub:'Identitätsfindung (11-18 Jahre)'},
+    {id:'4',   num:'4', title:'Auf eigenen Beinen',         sub:'Arbeit, Liebe & Abenteuer'},
+    {id:'5',   num:'5', title:'Als Eltern & Großeltern',    sub:'Eure neue Rolle'},
+    {id:'6',   num:'6', title:'Lebensbilanz & Vermächtnis', sub:'Was bleibt'},
+    {id:'misc',num:'✦', title:'Sonstiges',                  sub:'Weitere Erzählungen'}
+  ];
+
+  /* ── STORAGE-SCHLÜSSEL ───────────────────────────────────
+     Eindeutige Namen für den Browser-Speicher (localStorage) */
+  var SK = 'omaopa_v6';    // Blöcke
+  var QK = 'omaopa_qv6';   // Zitat
+  var BK = 'omaopa_bv6';   // Bannerfoto
+  var CK = 'omaopa_cfg2';  // GitHub-Einstellungen
+
+  /* ── ZUSTANDSVARIABLEN ───────────────────────────────────*/
+  var editId    = null;   // ID des gerade bearbeiteten Blocks
+  var delId     = null;   // ID des zu löschenden Blocks
+  var mediaId   = null;   // ID des Blocks, dem Medien hinzugefügt werden
+  var isEditor  = true;   // Rolle: true = Mitarbeiter, false = Betrachter
+  var ghFileSha = null;   // SHA-Hash der GitHub-Datei (für Updates nötig)
+  var syncTimer = null;   // Timer für verzögertes Auto-Speichern
+
+  /* ── STORAGE-HILFSFUNKTIONEN ─────────────────────────────*/
+  function ldb() {
+    try { return JSON.parse(localStorage.getItem(SK) || '[]'); } catch(e) { return []; }
+  }
+  function sdb(d) {
+    try { localStorage.setItem(SK, JSON.stringify(d)); } catch(e) {}
+  }
+  function getCfg() {
+    try { return JSON.parse(localStorage.getItem(CK) || '{}'); } catch(e) { return {}; }
+  }
+  function saveCfg(c) {
+    try { localStorage.setItem(CK, JSON.stringify(c)); } catch(e) {}
+  }
+
+  /* ── ALLGEMEINE HILFSFUNKTIONEN ──────────────────────────*/
+  // Nächste freie Block-ID berechnen
+  function nid(d) {
+    return d.length ? Math.max.apply(null, d.map(function(b) { return b.id; })) + 1 : 1;
+  }
+  // Aktuellen Zeitstempel als ISO-String
+  function nowISO() { return new Date().toISOString(); }
+  // HTML-Sonderzeichen escapen (verhindert XSS)
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  // Datum formatieren: ISO → "dd.mm.yyyy"
+  function fd(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
+  }
+  // Wert für CSV-Export einrahmen
+  function csvE(s) { return '"' + String(s || '').replace(/"/g, '""') + '"'; }
+
+  /* ── TOAST-MELDUNGEN ─────────────────────────────────────
+     Kurze Statusmeldungen unten rechts                       */
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.innerHTML = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 3200);
+  }
+
+  /* ── MODALS ──────────────────────────────────────────────*/
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  // Modal schließen wenn Benutzer neben es klickt
+  document.querySelectorAll('.modal-overlay').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      if (e.target === el) el.classList.remove('open');
+    });
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     GITHUB API — Lesen und Schreiben der datenbank.json
+     ══════════════════════════════════════════════════════════ */
+
+  function ghHeaders() {
+    var cfg = getCfg();
+    var h = { 'Content-Type': 'application/json', 'X-GitHub-Api-Version': '2022-11-28' };
+    if (cfg.token) h['Authorization'] = 'Bearer ' + cfg.token;
+    return h;
+  }
+
+  function ghUrl() {
+    // Zuerst gespeicherte Einstellungen prüfen
+    var cfg = getCfg();
+    if (cfg.user && cfg.repo && cfg.file) {
+      return 'https://api.github.com/repos/' + cfg.user + '/' + cfg.repo + '/contents/' + cfg.file;
+    }
+    // Fallback: URL-Parameter (für Viewer-Links wie ?user=x&repo=y&file=z)
+    var p = new URLSearchParams(window.location.search);
+    var u = p.get('user'), r = p.get('repo'), fi = p.get('file') || 'datenbank.json';
+    if (u && r) return 'https://api.github.com/repos/' + u + '/' + r + '/contents/' + fi;
+    return null;
+  }
+
+  function setSyncStatus(state, text) {
+    document.getElementById('sync-dot').className = 'sync-dot ' + state;
+    document.getElementById('sync-label').textContent = text;
+  }
+
+  /* Base64 → Text (mit voller Umlaut-Unterstützung)
+     Wichtig: btoa/atob allein funktioniert nicht mit ä,ö,ü  */
+  function decodeBase64UTF8(base64) {
+    try {
+      var binary = atob(base64.replace(/\n/g, ''));
+      var bytes = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return new TextDecoder('utf-8').decode(bytes);
+    } catch(e1) {
+      try {
+        return decodeURIComponent(escape(atob(base64.replace(/\n/g, ''))));
+      } catch(e2) {
+        throw new Error('Base64-Dekodierung fehlgeschlagen: ' + e2.message);
+      }
+    }
+  }
+
+  /* Datenbank von GitHub laden */
+  async function loadFromGitHub() {
+    var url = ghUrl();
+    if (!url) { setSyncStatus('warn', 'Nicht konfiguriert'); return false; }
+    setSyncStatus('busy', 'Lade von GitHub...');
+    try {
+      var r = await fetch(url, { headers: ghHeaders() });
+      if (!r.ok) {
+        var errData = await r.json().catch(function() { return {}; });
+        setSyncStatus('err', 'Fehler ' + r.status + (errData.message ? ' — ' + errData.message : ''));
+        toast('GitHub-Fehler ' + r.status + ': ' + (errData.message || 'Bitte Einstellungen prüfen'));
+        render();
+        return false;
+      }
+      var data = await r.json();
+      ghFileSha = data.sha;
+
+      var rawContent = (data.content || '').replace(/\n/g, '').trim();
+      if (!rawContent) {
+        setSyncStatus('warn', 'Datei ist leer — starte mit leerem Datensatz');
+        toast('datenbank.json ist leer — du kannst jetzt Blöcke hinzufügen');
+        render();
+        return true;
+      }
+
+      var raw = decodeBase64UTF8(rawContent);
+      if (!raw.trim()) { setSyncStatus('warn', 'Datei ist leer'); render(); return true; }
+
+      var parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        sdb(parsed);
+        render();
+        setSyncStatus('ok', 'Synchronisiert · ' + fd(nowISO()));
+        toast('Daten von GitHub geladen (' + parsed.length + ' Blöcke)');
+        return true;
+      } else {
+        setSyncStatus('warn', 'JSON-Format ungültig — kein Array');
+        toast('Warnung: datenbank.json enthält kein gültiges Array');
+        render();
+        return false;
+      }
+    } catch(e) {
+      setSyncStatus('err', 'Ladefehler: ' + e.message);
+      toast('Fehler beim Laden: ' + e.message);
+      console.error('loadFromGitHub Fehler:', e);
+      render();
+      return false;
+    }
+  }
+
+  /* Datenbank in GitHub speichern */
+  async function saveToGitHub(db, msg) {
+    var url = ghUrl();
+    if (!url) return false;
+    var cfg = getCfg();
+    if (!cfg.token) { setSyncStatus('warn', 'Kein Token — nur Lesezugriff'); return false; }
+    setSyncStatus('busy', 'Speichere...');
+    try {
+      // Text → Base64 mit korrekter UTF-8-Kodierung
+      var jsonStr = JSON.stringify(db, null, 2);
+      var bytes = new TextEncoder().encode(jsonStr);
+      var binary = '';
+      bytes.forEach(function(b) { binary += String.fromCharCode(b); });
+      var content = btoa(binary);
+
+      var body = {
+        message: msg || 'Update ' + new Date().toLocaleString('de-DE'),
+        content: content,
+        branch: 'main'
+      };
+      if (ghFileSha) body.sha = ghFileSha;
+
+      var r = await fetch(url, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+      if (!r.ok) {
+        var ed = await r.json();
+        setSyncStatus('err', 'Fehler ' + r.status + ': ' + (ed.message || ''));
+        return false;
+      }
+      var result = await r.json();
+      ghFileSha = result.content.sha;
+      setSyncStatus('ok', 'Gespeichert · ' + fd(nowISO()));
+      return true;
+    } catch(e) {
+      setSyncStatus('err', 'Fehler: ' + e.message);
+      return false;
+    }
+  }
+
+  /* Verzögertes Auto-Speichern (1,5 Sek. nach letzter Änderung) */
+  function scheduleSyncToGitHub() {
+    if (syncTimer) clearTimeout(syncTimer);
+    syncTimer = setTimeout(async function() {
+      var db = ldb();
+      var active = db.filter(function(b) { return !b.deleted; }).length;
+      await saveToGitHub(db, 'Auto-Update — ' + active + ' aktive Blöcke');
+    }, 1500);
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     RENDERING — Seite aufbauen
+     ══════════════════════════════════════════════════════════ */
+
+  function render() {
+    var db = ldb();
+    var active = db.filter(function(b) { return !b.deleted; });
+
+    // Statistikleiste aktualisieren
+    document.getElementById('stats-bar').innerHTML =
+      '<div class="stat-card"><div class="stat-n">' + active.length + '</div><div class="stat-l">Einträge</div></div>' +
+      '<div class="stat-card"><div class="stat-n">' + db.filter(function(b) { return b.deleted; }).length + '</div><div class="stat-l">Archiviert</div></div>' +
+      '<div class="stat-card"><div class="stat-n">' + active.filter(function(b) { return b.media && b.media.length; }).length + '</div><div class="stat-l">Mit Medien</div></div>' +
+      '<div class="stat-card"><div class="stat-n">' + new Set(active.map(function(b) { return b.la; })).size + '</div><div class="stat-l">Abschnitte</div></div>';
+
+    // Lebensabschnitte aufbauen
+    var c = document.getElementById('sections-container');
+    c.innerHTML = '';
+
+    LA.forEach(function(la) {
+      var blocks = db.filter(function(b) { return b.la === la.id && !b.deleted; });
+      var sec = document.createElement('div');
+      sec.className = 'la-section';
+      sec.id = 'sec-' + la.id;
+
+      sec.innerHTML =
+        '<div class="la-header">' +
+          '<div class="la-number' + (la.id === 'misc' ? ' misc' : '') + '">' + la.num + '</div>' +
+          '<div><div class="la-title">' + la.title + '</div><div class="la-subtitle">' + la.sub + '</div></div>' +
+          '<span class="la-count">' + blocks.length + ' Einträge</span>' +
+        '</div>' +
+        '<div class="blocks-list" id="bl-' + la.id + '" data-la="' + la.id + '">' +
+          (blocks.length === 0 ? '<div class="la-empty-hint">Noch keine Inhalte — klicke auf <strong>+</strong> um zu beginnen.</div>' : '') +
+        '</div>';
+
+      c.appendChild(sec);
+
+      var bl = sec.querySelector('.blocks-list');
+      blocks.forEach(function(b) { bl.appendChild(mkCard(b)); });
+
+      // Drag & Drop: Block in anderen Abschnitt verschieben
+      bl.addEventListener('dragover',  function(e) { e.preventDefault(); bl.classList.add('drag-over'); });
+      bl.addEventListener('dragleave', function()  { bl.classList.remove('drag-over'); });
+      bl.addEventListener('drop', function(e) {
+        e.preventDefault();
+        bl.classList.remove('drag-over');
+        var bid = parseInt(e.dataTransfer.getData('bid'), 10);
+        var db2 = ldb();
+        var blk = db2.find(function(b) { return b.id === bid; });
+        if (blk && blk.la !== la.id) {
+          blk.la = la.id;
+          blk.updated = nowISO();
+          sdb(db2);
+          scheduleSyncToGitHub();
+          render();
+          toast('Block verschoben ✓');
+        }
+      });
+    });
+
+    renderQuote();
+  }
+
+  /* Einzelne Block-Karte erstellen */
+  function mkCard(b) {
+    var la = LA.find(function(x) { return x.id === b.la; }) || LA[LA.length - 1];
+    var div = document.createElement('div');
+    div.className = 'block';
+    div.draggable = true;
+    div.dataset.bid = b.id;
+
+    // Medien-Vorschaubilder
+    var mhtml = '';
+    if (b.media && b.media.length) {
+      mhtml = '<div class="block-media">';
+      b.media.forEach(function(m) {
+        if (m.type === 'img') mhtml += '<img class="media-thumb" src="' + m.data + '" alt="Bild">';
+        else                  mhtml += '<video class="media-thumb" src="' + m.data + '" controls></video>';
+      });
+      mhtml += '</div>';
+    }
+
+    // Inhalt je nach Blocktyp
+    var bodyHtml = b.type === 'qa'
+      ? '<div class="block-question"><span>' + esc(b.frage)   + '</span></div>' +
+        '<div class="block-answer"><span>'   + esc(b.antwort) + '</span></div>'
+      : '<div class="block-text">' + esc(b.text || '') + '</div>';
+
+    var laLabel = (la.num !== '✦' ? la.num + '. ' : '') + la.title;
+
+    div.innerHTML =
+      '<div class="block-header">' +
+        '<span class="block-tag' + (b.type === 'misc' ? ' misc' : '') + '">' + (b.type === 'qa' ? 'F &amp; A' : 'Notiz') + '</span>' +
+        '<div class="block-actions editor-only">' +
+          '<button class="block-btn img-btn" data-id="' + b.id + '" title="Medien hinzufügen">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
+          '</button>' +
+          '<button class="block-btn edt-btn" data-id="' + b.id + '" title="Bearbeiten">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+          '</button>' +
+          '<button class="block-btn del-btn" data-id="' + b.id + '" title="Löschen">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>' +
+          '</button>' +
+          '<button class="block-btn drg-btn" title="Verschieben (Drag & Drop)">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="6" r="1" fill="currentColor"/><circle cx="15" cy="6" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="18" r="1" fill="currentColor"/><circle cx="15" cy="18" r="1" fill="currentColor"/></svg>' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="block-body">' + bodyHtml + mhtml + '</div>' +
+      '<div class="block-footer">' +
+        '<span class="block-id">#' + b.id + '</span>' +
+        '<span class="block-date">' + fd(b.created) + (b.updated ? ' · bearb. ' + fd(b.updated) : '') + '</span>' +
+        '<span class="block-la-tag">' + laLabel + '</span>' +
+      '</div>';
+
+    // Drag-Events
+    div.addEventListener('dragstart', function(e) { e.dataTransfer.setData('bid', b.id); div.classList.add('dragging'); });
+    div.addEventListener('dragend',   function()  { div.classList.remove('dragging'); });
+
+    // Button-Events
+    div.querySelector('.img-btn').addEventListener('click', function() {
+      mediaId = parseInt(this.dataset.id, 10);
+      document.getElementById('media-inp').value = '';
+      openModal('media-modal');
+    });
+    div.querySelector('.edt-btn').addEventListener('click', function() { openEditModal(parseInt(this.dataset.id, 10)); });
+    div.querySelector('.del-btn').addEventListener('click', function() { openAskDelete(parseInt(this.dataset.id, 10)); });
+
+    return div;
+  }
+
+  /* Zitat im Hero-Bereich aktualisieren */
+  function renderQuote() {
+    var q = null;
+    try { q = JSON.parse(localStorage.getItem(QK) || 'null'); } catch(e) {}
+    var el = document.getElementById('quote-content');
+    var me = document.getElementById('quote-meta');
+    if (q && q.text) {
+      el.innerHTML = '<p class="quote-text">' + esc(q.text) + '</p>';
+      me.textContent = q.source || '';
+    } else {
+      el.innerHTML = '<p class="quote-empty">Noch kein Zitat hinterlegt.</p>';
+      me.textContent = '';
+    }
+  }
+
+  /* Lebensabschnitt-Dropdown befüllen */
+  function fillLASelect(selId, val) {
+    document.getElementById(selId).innerHTML = LA.map(function(la) {
+      return '<option value="' + la.id + '"' + (la.id === val ? ' selected' : '') + '>' + la.title + '</option>';
+    }).join('');
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     BLOCK HINZUFÜGEN
+     ══════════════════════════════════════════════════════════ */
+
+  // Typ-Wechsel im Hinzufügen-Dialog
+  document.getElementById('m-type').addEventListener('change', function() {
+    var t = this.value;
+    document.getElementById('m-qa-f').style.display  = t === 'qa'   ? 'block' : 'none';
+    document.getElementById('m-txt-f').style.display = t === 'misc' ? 'block' : 'none';
+  });
+
+  // + Button
+  document.getElementById('fab-btn').addEventListener('click', function() {
+    editId = null;
+    document.getElementById('bm-title').textContent = 'Block hinzufügen';
+    document.getElementById('bm-save').textContent  = 'Block erstellen';
+    document.getElementById('m-frage').value   = '';
+    document.getElementById('m-antwort').value = '';
+    document.getElementById('m-text').value    = '';
+    document.getElementById('m-type').value    = 'qa';
+    document.getElementById('m-qa-f').style.display  = 'block';
+    document.getElementById('m-txt-f').style.display = 'none';
+    fillLASelect('m-la', '1');
+    openModal('block-modal');
+  });
+
+  document.getElementById('bm-cancel').addEventListener('click', function() { closeModal('block-modal'); });
+
+  document.getElementById('bm-save').addEventListener('click', function() {
+    var type = document.getElementById('m-type').value;
+    var la   = document.getElementById('m-la').value;
+    var db   = ldb();
+    var blk  = { type: type, la: la, created: nowISO(), updated: null, deleted: null, media: [] };
+
+    if (type === 'qa') {
+      blk.frage   = document.getElementById('m-frage').value.trim();
+      blk.antwort = document.getElementById('m-antwort').value.trim();
+      if (!blk.frage && !blk.antwort) { toast('Bitte Frage oder Antwort eingeben.'); return; }
+    } else {
+      blk.text = document.getElementById('m-text').value.trim();
+      if (!blk.text) { toast('Bitte Text eingeben.'); return; }
+    }
+
+    blk.id = nid(db);
+    db.push(blk);
+    sdb(db);
+    closeModal('block-modal');
+    render();
+    scheduleSyncToGitHub();
+    toast('Block erstellt ✓');
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     BLOCK BEARBEITEN
+     ══════════════════════════════════════════════════════════ */
+
+  function openEditModal(id) {
+    editId = id;
+    var b = ldb().find(function(x) { return x.id === id; });
+    document.getElementById('e-qa-f').style.display  = b.type === 'qa'   ? 'block' : 'none';
+    document.getElementById('e-txt-f').style.display = b.type !== 'qa'   ? 'block' : 'none';
+    if (b.type === 'qa') {
+      document.getElementById('e-frage').value   = b.frage   || '';
+      document.getElementById('e-antwort').value = b.antwort || '';
+    } else {
+      document.getElementById('e-text').value = b.text || '';
+    }
+    fillLASelect('e-la', b.la);
+    openModal('edit-modal');
+  }
+
+  document.getElementById('em-cancel').addEventListener('click', function() { closeModal('edit-modal'); });
+
+  document.getElementById('em-save').addEventListener('click', function() {
+    var db = ldb();
+    var b  = db.find(function(x) { return x.id === editId; });
+    b.la      = document.getElementById('e-la').value;
+    b.updated = nowISO();
+    if (b.type === 'qa') {
+      b.frage   = document.getElementById('e-frage').value.trim();
+      b.antwort = document.getElementById('e-antwort').value.trim();
+    } else {
+      b.text = document.getElementById('e-text').value.trim();
+    }
+    sdb(db);
+    closeModal('edit-modal');
+    render();
+    scheduleSyncToGitHub();
+    toast('Gespeichert ✓');
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     BLOCK LÖSCHEN
+     ══════════════════════════════════════════════════════════ */
+
+  function openAskDelete(id) {
+    delId = id;
+    var b = ldb().find(function(x) { return x.id === id; });
+    document.getElementById('del-prev').textContent = '#' + b.id + ' · ' + (b.frage || b.text || '').substring(0, 60);
+    openModal('delete-modal');
+  }
+
+  document.getElementById('del-cancel').addEventListener('click', function() { closeModal('delete-modal'); });
+
+  document.getElementById('del-confirm').addEventListener('click', function() {
+    var db = ldb();
+    var b  = db.find(function(x) { return x.id === delId; });
+    b.deleted = nowISO();     // Block wird NICHT entfernt, nur als gelöscht markiert
+    sdb(db);
+    closeModal('delete-modal');
+    render();
+    scheduleSyncToGitHub();
+    toast('Block gelöscht — in JSON archiviert');
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     MEDIEN HINZUFÜGEN
+     ══════════════════════════════════════════════════════════ */
+
+  document.getElementById('mm-cancel').addEventListener('click', function() { closeModal('media-modal'); });
+
+  document.getElementById('mm-save').addEventListener('click', function() {
+    var files = Array.from(document.getElementById('media-inp').files);
+    if (!files.length) { closeModal('media-modal'); return; }
+    var db = ldb();
+    var b  = db.find(function(x) { return x.id === mediaId; });
+    if (!b.media) b.media = [];
+    var done = 0;
+    files.forEach(function(file) {
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        b.media.push({ type: file.type.startsWith('video') ? 'vid' : 'img', data: ev.target.result });
+        b.updated = nowISO();
+        done++;
+        if (done === files.length) {
+          sdb(db);
+          render();
+          closeModal('media-modal');
+          scheduleSyncToGitHub();
+          toast('Medien hinzugefügt ✓');
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     ZITAT BEARBEITEN
+     ══════════════════════════════════════════════════════════ */
+
+  document.getElementById('tb-quote').addEventListener('click', function() {
+    var q = null;
+    try { q = JSON.parse(localStorage.getItem(QK) || 'null'); } catch(e) {}
+    document.getElementById('q-text').value = q ? q.text      : '';
+    document.getElementById('q-src').value  = q ? q.source || '' : '';
+    openModal('quote-modal');
+  });
+
+  document.getElementById('qm-cancel').addEventListener('click', function() { closeModal('quote-modal'); });
+
+  document.getElementById('qm-save').addEventListener('click', function() {
+    var text   = document.getElementById('q-text').value.trim();
+    var source = document.getElementById('q-src').value.trim();
+    try { localStorage.setItem(QK, JSON.stringify({ text: text, source: source })); } catch(e) {}
+    closeModal('quote-modal');
+    renderQuote();
+    toast('Zitat gespeichert ✓');
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     GITHUB-EINSTELLUNGEN
+     ══════════════════════════════════════════════════════════ */
+
+  document.getElementById('settings-btn').addEventListener('click', function() {
+    var cfg = getCfg();
+    document.getElementById('cfg-user').value  = cfg.user  || '';
+    document.getElementById('cfg-repo').value  = cfg.repo  || '';
+    document.getElementById('cfg-file').value  = cfg.file  || 'datenbank.json';
+    document.getElementById('cfg-token').value = cfg.token || '';
+    document.getElementById('settings-status').innerHTML = '';
+    openModal('settings-modal');
+  });
+
+  document.getElementById('cfg-close').addEventListener('click', function() { closeModal('settings-modal'); });
+
+  // Verbindung testen ohne zu speichern
+  document.getElementById('cfg-test').addEventListener('click', async function() {
+    var user  = document.getElementById('cfg-user').value.trim();
+    var repo  = document.getElementById('cfg-repo').value.trim();
+    var file  = document.getElementById('cfg-file').value.trim() || 'datenbank.json';
+    var token = document.getElementById('cfg-token').value.trim();
+    var status = document.getElementById('settings-status');
+    status.innerHTML = '<p style="font-size:.82rem;color:var(--txt-mid);margin-top:8px">Teste Verbindung...</p>';
+    try {
+      var headers = { 'X-GitHub-Api-Version': '2022-11-28' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      var r    = await fetch('https://api.github.com/repos/' + user + '/' + repo + '/contents/' + file, { headers: headers });
+      var data = await r.json();
+      if (r.ok) {
+        var size = Math.round(data.size / 1024 * 10) / 10;
+        status.innerHTML = srow('ok', 'Verbindung erfolgreich — Datei gefunden (' + size + ' KB)') +
+                           srow('ok', token ? 'Token gültig ✓' : 'Nur Lesezugriff (kein Token)');
+      } else {
+        status.innerHTML = srow('err', 'Fehler ' + r.status + ': ' + (data.message || 'Unbekannt'));
+      }
+    } catch(e) {
+      status.innerHTML = srow('err', 'Netzwerkfehler: ' + e.message);
+    }
+  });
+
+  // Hilfsfunktion: Status-Zeile im Einstellungs-Dialog
+  function srow(type, text) {
+    var icons = { ok: '✓', err: '✗', warn: '⚠' };
+    return '<div class="srow ' + type + '"><span>' + icons[type] + '</span><span style="margin-left:6px">' + text + '</span></div>';
+  }
+
+  // Einstellungen speichern und sofort verbinden
+  document.getElementById('cfg-save').addEventListener('click', function() {
+    var cfg = {
+      user:  document.getElementById('cfg-user').value.trim(),
+      repo:  document.getElementById('cfg-repo').value.trim(),
+      file:  document.getElementById('cfg-file').value.trim() || 'datenbank.json',
+      token: document.getElementById('cfg-token').value.trim()
+    };
+    saveCfg(cfg);
+    closeModal('settings-modal');
+    toast('Einstellungen gespeichert — verbinde mit GitHub...');
+    loadFromGitHub();
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     TOOLBAR-BUTTONS
+     ══════════════════════════════════════════════════════════ */
+
+  // Import/Export Panel ein-/ausblenden
+  document.getElementById('tb-io').addEventListener('click', function() {
+    document.getElementById('io-panel').classList.toggle('open');
+  });
+
+  // JSON lokal herunterladen
+  document.getElementById('tb-save').addEventListener('click', function() {
+    var blob = new Blob([JSON.stringify(ldb(), null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'datenbank.json';
+    a.click();
+  });
+
+  // Manueller GitHub-Sync
+  document.getElementById('tb-sync').addEventListener('click', async function() {
+    var db = ldb();
+    var ok = await saveToGitHub(db, 'Manueller Sync — ' + new Date().toLocaleString('de-DE'));
+    if (ok) toast('Erfolgreich in GitHub gespeichert ✓');
+  });
+
+  document.getElementById('io-import-btn').addEventListener('click', function() {
+    document.getElementById('import-inp').click();
+  });
+
+  document.getElementById('io-export-btn').addEventListener('click', function() {
+    var blob = new Blob([JSON.stringify(ldb(), null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'datenbank.json';
+    a.click();
+  });
+
+  document.getElementById('io-csv-btn').addEventListener('click', function() {
+    var d    = ldb();
+    var h    = ['id', 'typ', 'frage_text', 'antwort', 'la', 'la_name', 'created', 'updated', 'deleted'];
+    var rows = d.map(function(b) {
+      return [
+        b.id, b.type,
+        csvE(b.frage || b.text || ''), csvE(b.antwort || ''),
+        b.la, csvE((LA.find(function(x) { return x.id === b.la; }) || LA[LA.length - 1]).title),
+        b.created || '', b.updated || '', b.deleted || ''
+      ];
+    });
+    var blob = new Blob(
+      ['\uFEFF' + [h].concat(rows).map(function(r) { return r.join(';'); }).join('\n')],
+      { type: 'text/csv;charset=utf-8' }
+    );
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'oma-opa-datenbank.csv';
+    a.click();
+  });
+
+  // JSON-Datei importieren
+  document.getElementById('import-inp').addEventListener('change', function(e) {
+    var f = e.target.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var imp = JSON.parse(ev.target.result);
+        var db  = ldb();
+        var ids = new Set(db.map(function(b) { return b.id; }));
+        var added = 0;
+        imp.forEach(function(b) { if (!ids.has(b.id)) { db.push(b); added++; } });
+        sdb(db);
+        render();
+        scheduleSyncToGitHub();
+        toast(added + ' Blöcke importiert ✓');
+      } catch(err) {
+        toast('Fehler: ' + err.message);
+      }
+    };
+    reader.readAsText(f);
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     BANNERFOTO
+     ══════════════════════════════════════════════════════════ */
+
+  document.getElementById('avatar-ph').addEventListener('click',  function() { document.getElementById('banner-inp').click(); });
+  document.getElementById('change-btn').addEventListener('click', function() { document.getElementById('banner-inp').click(); });
+
+  document.getElementById('banner-inp').addEventListener('change', function(e) {
+    var f = e.target.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try { localStorage.setItem(BK, ev.target.result); } catch(err) {}
+      document.getElementById('avatar-ph').style.display = 'none';
+      var img = document.getElementById('banner-img');
+      img.src = ev.target.result;
+      img.style.display = 'block';
+      document.getElementById('change-btn').style.display = 'block';
+      toast('Foto gespeichert ✓');
+    };
+    reader.readAsDataURL(f);
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     ROLLE WECHSELN (Mitarbeiter ↔ Betrachter)
+     ══════════════════════════════════════════════════════════ */
+
+  document.getElementById('role-toggle-btn').addEventListener('click', function() {
+    // Im Viewer-Modus (URL-Parameter) kann nicht in den Editor gewechselt werden
+    var urlP = new URLSearchParams(window.location.search);
+    if (urlP.get('mode') === 'view') {
+      toast('Nur Betrachter-Modus verfügbar. Für Bearbeitungen bitte die Editor-URL verwenden.');
+      return;
+    }
+    isEditor = !isEditor;
+    document.getElementById('role-label').textContent    = isEditor ? 'Mitarbeiter' : 'Betrachter';
+    document.getElementById('role-dot').className        = 'role-dot' + (isEditor ? '' : ' viewer');
+    document.body.className                               = isEditor ? 'editor-mode' : 'viewer-mode';
+    document.getElementById('fab').style.display         = isEditor ? 'block' : 'none';
+    render();
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     SIDEBAR — Ein-/Ausblenden & Navigation
+     ══════════════════════════════════════════════════════════ */
+
+  var sbVisible = true;
+  document.getElementById('sidebar-toggle').addEventListener('click', function() {
+    sbVisible = !sbVisible;
+    document.getElementById('sidebar').classList.toggle('hidden',   !sbVisible);
+    document.getElementById('main').classList.toggle('expanded', !sbVisible);
+  });
+
+  // Klick auf Navigationspunkt → sanft scrollen
+  document.querySelectorAll('.nav-link').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = document.getElementById(a.getAttribute('href').slice(1));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelectorAll('.nav-link').forEach(function(x) { x.classList.remove('active'); });
+      a.classList.add('active');
+    });
+  });
+
+  // Aktiven Navigationspunkt beim Scrollen hervorheben
+  window.addEventListener('scroll', function() {
+    var cur = '';
+    document.querySelectorAll('[id^="sec-"]').forEach(function(s) {
+      if (window.scrollY >= s.offsetTop - 120) cur = s.id;
+    });
+    document.querySelectorAll('.nav-link').forEach(function(a) {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
+    });
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     INITIALISIERUNG — läuft einmalig beim Laden der Seite
+     ══════════════════════════════════════════════════════════ */
+
+  // Bannerfoto wiederherstellen falls vorhanden
+  var bannerData = null;
+  try { bannerData = localStorage.getItem(BK); } catch(e) {}
+  if (bannerData) {
+    document.getElementById('avatar-ph').style.display   = 'none';
+    var bImg = document.getElementById('banner-img');
+    bImg.src = bannerData;
+    bImg.style.display = 'block';
+    document.getElementById('change-btn').style.display = 'block';
+  }
+
+  /* ── URL-PARAMETER AUSWERTEN ─────────────────────────────
+     ?mode=view  → direkt in den Betrachter-Modus
+     ?user=x&repo=y → Daten öffentlich laden ohne Token      */
+  var urlParams = new URLSearchParams(window.location.search);
+  var viewMode  = urlParams.get('mode') === 'view';
+
+  if (viewMode) {
+    // ── BETRACHTER-MODUS ──────────────────────────────────
+    // Alle Editor-Elemente sofort ausblenden
+    isEditor = false;
+    document.body.className = 'viewer-mode';
+    document.getElementById('fab').style.display         = 'none';
+    document.getElementById('role-toggle-btn').style.display = 'none';
+    document.getElementById('settings-btn').style.display    = 'none';
+    // Sync-Status anpassen
+    setSyncStatus('busy', 'Lade Inhalte...');
+    // Öffentlich laden — kein Token nötig, da Repository public ist
+    loadFromGitHub();
+
+  } else {
+    // ── EDITOR-MODUS ──────────────────────────────────────
+    var cfg = getCfg();
+    if (cfg.user && cfg.repo) {
+      // Gespeicherte Einstellungen in den Dialog eintragen
+      document.getElementById('cfg-user').value  = cfg.user  || '';
+      document.getElementById('cfg-repo').value  = cfg.repo  || '';
+      document.getElementById('cfg-file').value  = cfg.file  || 'datenbank.json';
+      document.getElementById('cfg-token').value = cfg.token || '';
+      // Daten von GitHub laden (mit Token falls vorhanden)
+      loadFromGitHub();
+    } else {
+      // Noch keine Einstellungen — lokal rendern und Dialog öffnen
+      render();
+      setSyncStatus('warn', 'Einstellungen fehlen');
+      setTimeout(function() {
+        openModal('settings-modal');
+        toast('Bitte GitHub-Einstellungen einrichten → Zahnrad oben rechts');
+      }, 600);
+    }
+  }
+
+}()); // Ende der IIFE
+
+</script>
+
+</body>
+</html>
