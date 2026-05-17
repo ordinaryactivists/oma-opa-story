@@ -213,9 +213,9 @@
     "type": "qa",
     "la": "2",
     "frage": "Weißt du, wann und wo sie geboren wurden?",
-    "antwort": "Eltern von \n\nOma\n\n**Oma:**  \nAlfred Paul Böhm, geboren am **23. September 1906** in Alberoda Helene Nitsch, geboren am **14. März 1908** in Schlema Eltern von\n\nOpa\n\n**Opa:**  \nHans Schneider, geboren am **18. Mai 1905** in Schlema Marie Mehlhorn, geboren am **24. September 1905** in Schlema",
+    "antwort": "**Oma:**  \n **Alfred Paul Böhm **, geboren am **23. September 1906** in  **Alberoda ** \n **Helene Nitsch **, geboren am **14. März 1908** in  **Schlema **\n\n**Opa:**  \n **Hans Schneider **, geboren am **18. Mai 1905** in  **Schlema **\n **Marie Mehlhorn **, geboren am **24. September 1905** in  **Schlema **",
     "created": "2025-01-01T00:00:00.000Z",
-    "updated": null,
+    "updated": "2026-05-17T21:38:09.642Z",
     "deleted": null,
     "media": []
   },
